@@ -1,0 +1,9 @@
+---
+import GuideArticle from '../components/GuideArticle.astro';
+import { guides } from '../data/guides';
+
+const guide = guides.find((item) => item.path === '/aides-panneau-solaire-06');
+if (!guide) throw new Error('Guide aides introuvable');
+---
+
+<GuideArticle guide={guide} canonical="/aides-panneau-solaire-06/" />

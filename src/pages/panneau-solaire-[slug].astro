@@ -1,0 +1,140 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SolarSimulator from '../components/SolarSimulator.astro';
+import LeadForm from '../components/LeadForm.astro';
+import { communes, cityBlocks, localMetrics } from '../data/site';
+
+export function getStaticPaths() {
+  return communes.map((commune, index) => ({ params: { slug: commune.slug }, props: { commune, index } }));
+}
+
+const { commune, index } = Astro.props;
+const blocks = cityBlocks(commune, index);
+const metrics = localMetrics(commune, index);
+const cp = commune.postalCodes[0];
+const title = `Panneaux solaires à ${commune.name} (${cp}) | Prix & devis 2026`;
+const description = `Production, prix et devis de panneaux solaires à ${commune.name}. Étude pour villa, batterie et autoconsommation avec professionnels QualiPV RGE du 06.`;
+const related = [1, 2, 3, 5].map((offset) => communes[(index + offset) % communes.length]);
+const priceRows = [
+  { power: '3 kWc', use: 'Petite villa ou consommation contenue', production: Math.round(metrics.yieldPerKwc * 3), price: '8 500–11 000 €' },
+  { power: '6 kWc', use: 'Villa familiale, climatisation en journée', production: metrics.sixKwc, price: '14 000–18 000 €' },
+  { power: '9 kWc', use: 'Piscine, pompe à chaleur et véhicule électrique', production: metrics.nineKwc, price: '18 000–24 000 €' },
+  { power: '12 kWc', use: 'Grande propriété et autonomie renforcée', production: Math.round(metrics.yieldPerKwc * 12), price: '22 000–35 000 €' },
+];
+const faqs = [
+  { q: `Quelle production attendre à ${commune.name} ?`, a: `Notre hypothèse de pré-étude est de ${metrics.yieldPerKwc.toLocaleString('fr-FR')} kWh par kWc et par an, soit environ ${metrics.sixKwc.toLocaleString('fr-FR')} kWh/an pour 6 kWc. La visite technique doit corriger ce repère selon l’orientation, la pente et les ombres réelles.` },
+  { q: `Quel budget prévoir pour une villa à ${commune.name} ?`, a: 'Les installations premium du 06 se situent généralement entre 8 500 et 24 000 € TTC pour 3 à 9 kWc. Une batterie, un carport ou une intégration architecturale complexe peuvent augmenter le budget.' },
+  { q: 'Les panneaux full black changent-ils les performances ?', a: 'Le choix full black répond surtout à une exigence d’intégration. La technologie des cellules, le coefficient de température, la ventilation et la qualité de pose influencent davantage la production.' },
+  { q: `Une batterie est-elle rentable à ${commune.name} ?`, a: 'Elle se justifie lorsque la consommation du soir est importante, que l’on souhaite un mode secours ou que la résidence est pilotée à distance. Le calcul doit comparer son coût au surplus réellement déplacé.' },
+  { q: 'Quelles autorisations faut-il obtenir ?', a: `Une déclaration préalable est généralement nécessaire. À ${commune.name}, le service urbanisme doit confirmer le PLU, la visibilité depuis l’espace public et l’éventuelle consultation de l’Architecte des Bâtiments de France.` },
+];
+const schema = [
+  { '@context': 'https://schema.org', '@type': 'Service', name: `Installation de panneaux solaires à ${commune.name}`, description, url: `https://panneau-solaire-alpes-maritimes.fr/panneau-solaire-${commune.slug}/`, areaServed: { '@type': 'City', name: commune.name }, provider: { '@type': 'Organization', '@id': 'https://panneau-solaire-alpes-maritimes.fr/#organization', name: 'Panneau Solaire Alpes-Maritimes', url: 'https://panneau-solaire-alpes-maritimes.fr/' } },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map((item) => ({ '@type': 'Question', name: item.q, acceptedAnswer: { '@type': 'Answer', text: item.a } })) },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://panneau-solaire-alpes-maritimes.fr/' }, { '@type': 'ListItem', position: 2, name: 'Communes', item: 'https://panneau-solaire-alpes-maritimes.fr/communes/' }, { '@type': 'ListItem', position: 3, name: commune.name }] },
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <section class="local-hero">
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Fil d’Ariane"><a href="/">Accueil</a><span>›</span><a href="/communes/">Communes</a><span>›</span><span>{commune.name}</span></nav>
+      <div class="local-hero-grid">
+        <div>
+          <span class="eyebrow eyebrow-amber">Étude locale · Alpes-Maritimes · {cp}</span>
+          <h1>Panneaux solaires à {commune.name} : production, prix et devis</h1>
+          <p>{metrics.localAngle}</p>
+          <div class="page-hero-actions"><a class="button button-primary" href="#devis">Obtenir mon étude à {commune.name} →</a><a class="button button-hero-secondary" href="#simulateur">Calculer ma production</a></div>
+          <div class="hero-proof"><span>✓ Étude gratuite</span><span>✓ Sans engagement</span><span>✓ Projet situé dans le 06</span></div>
+        </div>
+        <aside class="local-hero-card">
+          <span>Prévision pour 6 kWc</span>
+          <strong>{metrics.sixKwc.toLocaleString('fr-FR')} <small>kWh/an</small></strong>
+          <div><p><b>{metrics.yieldPerKwc}</b> kWh/kWc/an</p><p><b>14–18 k€</b> budget premium</p></div>
+          <small>Modèle indicatif avant étude de la toiture.</small>
+        </aside>
+      </div>
+      <div class="local-data-strip">
+        <div><strong>{commune.postalCodes.join(' · ')}</strong><span>codes postaux couverts</span></div>
+        <div><strong>{commune.population.toLocaleString('fr-FR')}</strong><span>habitants</span></div>
+        <div><strong>{metrics.nineKwc.toLocaleString('fr-FR')}</strong><span>kWh/an estimés pour 9 kWc</span></div>
+        <div><strong>30 ans</strong><span>garantie linéaire premium</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container content-layout">
+      <article class="prose local-prose">
+        <span class="eyebrow">Conception locale</span>
+        <h2>Un projet adapté aux villas de {commune.name}</h2>
+        <p>{blocks.intro}</p>
+        <p>{metrics.roofType}</p>
+        <div class="data-callout"><strong>Le point décisif</strong>Une production élevée ne suffit pas. Le devis doit montrer quelle part sera consommée par la villa, quelle part sera injectée et quels équipements pourront être pilotés pendant les heures solaires.</div>
+
+        <h2>Urbanisme, raccordement et calendrier</h2>
+        <p>{metrics.planning}</p>
+        <p>{blocks.advice}</p>
+        <ul>
+          <li>Validation de la couverture, de la charpente et des accès de sécurité.</li>
+          <li>Déclaration préalable et vérification des contraintes patrimoniales.</li>
+          <li>Demande de raccordement Enedis et choix autoconsommation avec surplus.</li>
+          <li>Attestation Consuel, mise en service et accès propriétaire au monitoring.</li>
+        </ul>
+
+        <h2>Matériel premium : ce qui mérite réellement le surcoût</h2>
+        <p>Une installation haut de gamme associe des modules N-type à faible dégradation, une électronique adaptée aux pans de toiture, des protections clairement dimensionnées et un suivi de production exploitable. L’étiquette « premium » n’a aucune valeur si les références exactes et les garanties ne figurent pas au devis.</p>
+        <p>{blocks.heritage}</p>
+      </article>
+      <aside class="sidebar-card local-sidebar">
+        <span class="eyebrow eyebrow-amber">Votre feuille de route</span>
+        <h2>Étudier votre toiture à {commune.name}</h2>
+        <p>Recevez une estimation adaptée à l’adresse et aux usages de la propriété.</p>
+        <a class="button button-primary button-full" href="#devis">Demander mon étude →</a>
+        <a class="text-link" href={`/installateur-solaire-${commune.slug}/`}>Comment choisir l’installateur →</a>
+        <dl><div><dt>Productible indicatif</dt><dd>{metrics.yieldPerKwc} kWh/kWc</dd></div><div><dt>Puissance villa</dt><dd>6 à 12 kWc</dd></div><div><dt>Qualification</dt><dd>QualiPV RGE</dd></div></dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section-white">
+    <div class="container">
+      <div class="section-heading"><span class="eyebrow eyebrow-amber">Budget & production</span><h2>Comparer les puissances à {commune.name}</h2><p>Des repères homogènes pour cadrer les offres avant la visite technique.</p></div>
+      <div class="local-price-table" role="table" aria-label={`Prix indicatifs à ${commune.name}`}>
+        <div class="local-price-row local-price-head" role="row"><span>Puissance</span><span>Profil</span><span>Production/an</span><span>Prix TTC</span></div>
+        {priceRows.map((row) => <div class="local-price-row" role="row"><strong>{row.power}</strong><span>{row.use}</span><span>{row.production.toLocaleString('fr-FR')} kWh</span><b>{row.price}</b></div>)}
+      </div>
+      <p class="table-note">Fourchettes départementales indicatives 2026, matériel premium et pose compris. Batterie, renforcement électrique, échafaudage ou contrainte ABF chiffrés séparément.</p>
+    </div>
+  </section>
+
+  <section class="section"><div class="container"><SolarSimulator city={commune.name} yieldPerKwc={metrics.yieldPerKwc}/></div></section>
+
+  <section class="section section-dark">
+    <div class="container">
+      <div class="section-heading center light"><span class="eyebrow eyebrow-amber">Décision en 4 étapes</span><h2>De l’adresse à la mise en service</h2></div>
+      <div class="process-grid">
+        <article><span>01</span><h3>Pré-étude</h3><p>Factures, toiture, usages actuels et projets futurs.</p></article>
+        <article><span>02</span><h3>Visite technique</h3><p>Ombres, structure, tableau, câbles et accès chantier.</p></article>
+        <article><span>03</span><h3>Offre comparable</h3><p>Matériel nommé, productible, garanties et démarches.</p></article>
+        <article><span>04</span><h3>Contrôle final</h3><p>Réception, Consuel, Enedis et monitoring propriétaire.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section"><div class="container"><LeadForm city={commune.name} postalCode={cp} heading={`Étudier mon projet solaire à ${commune.name}`}/></div></section>
+
+  <section class="section section-white">
+    <div class="container">
+      <div class="section-heading center"><span class="eyebrow">FAQ locale</span><h2>Vos questions sur le solaire à {commune.name}</h2></div>
+      <div class="faq-list">{faqs.map((item) => <details><summary>{item.q}</summary><p>{item.a}</p></details>)}</div>
+    </div>
+  </section>
+
+  <section class="section-compact">
+    <div class="container">
+      <div class="section-heading"><span class="eyebrow">Secteurs proches</span><h2>Comparer d’autres communes du 06</h2></div>
+      <div class="city-grid">{related.map((item) => <a class="city-card" href={`/panneau-solaire-${item.slug}/`}><div class="city-card-header"><h3>{item.name}</h3><span class="postal-pill">{item.postalCodes[0]}</span></div><p>{item.profile}</p><div class="city-card-footer"><span>Voir l’étude locale</span><span>→</span></div></a>)}</div>
+    </div>
+  </section>
+</BaseLayout>

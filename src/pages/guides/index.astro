@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { guides } from '../../data/guides';
+---
+
+<BaseLayout
+	title="Guides Panneaux Solaires Alpes-Maritimes — Prix, Batterie & RGE"
+	description="Guides photovoltaïques approfondis pour les Alpes-Maritimes : prix, rentabilité, autoconsommation, batterie, patrimoine et installateurs QualiPV RGE."
+>
+	<section class="page-hero">
+		<div class="container">
+			<nav class="breadcrumbs" aria-label="Fil d’Ariane"><a href="/">Accueil</a><span>›</span><span>Guides</span></nav>
+			<span class="eyebrow eyebrow-amber">Dossiers techniques · 2026</span>
+			<h1>Des analyses complètes<br />avant de signer.</h1>
+			<p>Huit dossiers de fond pour comprendre le dimensionnement, les prix, le stockage, les contraintes patrimoniales et la sélection d’un professionnel dans le 06.</p>
+		</div>
+	</section>
+	<section class="section">
+		<div class="container guide-grid">
+			{guides.map((guide) => (
+				<a class="guide-card" href={`${guide.path || `/guides/${guide.slug}`}/`}>
+					<div class="guide-image">
+						<picture>
+							<source srcset={guide.image.replace(/\.png$/, '.webp')} type="image/webp" />
+							<img src={guide.image} alt={`Guide ${guide.shortTitle}`} width="1600" height="900" loading="lazy" decoding="async" />
+						</picture>
+						<span class="guide-tag">{guide.category}</span>
+					</div>
+					<div class="guide-content">
+						<h2>{guide.shortTitle}</h2>
+						<p>{guide.description}</p>
+						<div class="guide-meta"><span>{guide.readTime}</span><span>Lire le dossier →</span></div>
+					</div>
+				</a>
+			))}
+		</div>
+	</section>
+</BaseLayout>

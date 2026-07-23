@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LeadForm from '../components/LeadForm.astro';
+import { communes, localMetrics } from '../data/site';
+
+export function getStaticPaths() {
+  return communes.map((commune, index) => ({ params: { slug: commune.slug }, props: { commune, index } }));
+}
+
+const { commune, index } = Astro.props;
+const metrics = localMetrics(commune, index);
+const cp = commune.postalCodes[0];
+const title = `Installateur solaire à ${commune.name} (${cp}) | Devis RGE`;
+const description = `Comparez des installateurs solaires à ${commune.name} : contrôles QualiPV RGE, décennale, étude de production, garanties et devis photovoltaïques dans le 06.`;
+const related = [2, 4, 6, 8].map((offset) => communes[(index + offset) % communes.length]);
+const checks = [
+  ['Qualification active', 'Vérifiez la raison sociale et la période de validité QualiPV RGE dans l’annuaire officiel.'],
+  ['Décennale photovoltaïque', 'L’attestation doit couvrir explicitement la pose de générateurs photovoltaïques à la date du chantier.'],
+  ['Étude de toiture', `À ${commune.name}, exigez le calepinage, les ombres, la structure, le cheminement des câbles et les contraintes d’accès.`],
+  ['Productible argumenté', `Le repère de pré-étude est ici de ${metrics.yieldPerKwc} kWh/kWc/an ; tout écart doit être expliqué par les hypothèses de toiture.`],
+  ['Matériel nommé', 'Référence des modules, onduleur, protections, fixations, monitoring et garanties doivent apparaître noir sur blanc.'],
+  ['Démarches incluses', 'Urbanisme, Consuel, raccordement Enedis, contrat EDF OA et mise en service doivent être attribués clairement.'],
+];
+const faqs = [
+  { q: `Comment vérifier un installateur solaire à ${commune.name} ?`, a: 'Contrôlez sa qualification dans l’annuaire France Rénov’, l’identité portée sur le devis, l’assurance décennale photovoltaïque et la société qui réalisera réellement la pose.' },
+  { q: 'Combien de devis faut-il comparer ?', a: 'Deux ou trois propositions réellement comparables suffisent. Elles doivent utiliser la même puissance, des hypothèses de production explicites et un périmètre de démarches identique.' },
+  { q: 'Faut-il accepter une étude à distance ?', a: 'Une pré-étude à distance est utile pour cadrer le projet, mais une visite technique est indispensable avant l’engagement définitif : toiture, charpente, tableau électrique et accès ne se valident pas sur une simple photo.' },
+  { q: 'Un installateur peut-il sous-traiter la pose ?', a: 'Oui, à condition de l’annoncer et de préciser l’entreprise responsable du chantier. Demandez alors également ses qualifications et son assurance.' },
+];
+const schema = [
+  { '@context': 'https://schema.org', '@type': 'Service', name: `Mise en relation avec un installateur solaire à ${commune.name}`, description, url: `https://panneau-solaire-alpes-maritimes.fr/installateur-solaire-${commune.slug}/`, areaServed: { '@type': 'City', name: commune.name }, serviceType: 'Comparaison de devis photovoltaïques QualiPV RGE', provider: { '@type': 'Organization', '@id': 'https://panneau-solaire-alpes-maritimes.fr/#organization', name: 'Panneau Solaire Alpes-Maritimes' } },
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map((item) => ({ '@type': 'Question', name: item.q, acceptedAnswer: { '@type': 'Answer', text: item.a } })) },
+];
+---
+
+<BaseLayout title={title} description={description} schema={schema}>
+  <section class="local-hero installer-hero">
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Fil d’Ariane"><a href="/">Accueil</a><span>›</span><a href="/communes/">Communes</a><span>›</span><span>Installateur {commune.name}</span></nav>
+      <div class="local-hero-grid">
+        <div>
+          <span class="eyebrow eyebrow-amber">Méthode de sélection · QualiPV RGE</span>
+          <h1>Choisir un installateur solaire à {commune.name}</h1>
+          <p>Comparez des entreprises capables de justifier la production, le matériel, l’intégration à votre {commune.profile} et chaque étape du raccordement.</p>
+          <div class="page-hero-actions"><a class="button button-primary" href="#devis">Comparer les devis →</a><a class="button button-hero-secondary" href={`/panneau-solaire-${commune.slug}/`}>Voir les prix locaux</a></div>
+        </div>
+        <aside class="installer-score-card">
+          <span>La règle des 6 preuves</span>
+          <strong>RGE ne suffit pas.</strong>
+          <p>Qualification, assurance, visite, productible, matériel et démarches doivent toutes être vérifiables.</p>
+          <div><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-heading"><span class="eyebrow eyebrow-amber">Avant de signer</span><h2>Les 6 contrôles indispensables à {commune.name}</h2><p>Une offre sérieuse transforme chaque promesse en document vérifiable.</p></div>
+      <div class="installer-check-grid">{checks.map(([name, text], checkIndex) => <article><span>{String(checkIndex + 1).padStart(2, '0')}</span><div><h3>{name}</h3><p>{text}</p></div></article>)}</div>
+    </div>
+  </section>
+
+  <section class="section section-white">
+    <div class="container content-layout">
+      <article class="prose local-prose">
+        <span class="eyebrow">Lire un devis</span>
+        <h2>Comparer la technique, pas seulement le prix</h2>
+        <p>Deux devis de 9 kWc peuvent cacher des projets radicalement différents. Le nombre et la puissance des modules ne disent rien sur leur coefficient de température, leur tenue mécanique, la garantie produit ou la dégradation annuelle annoncée.</p>
+        <p>{metrics.roofType}</p>
+        <table>
+          <tbody>
+            <tr><th>Le devis doit préciser</th><th>Signal d’alerte</th></tr>
+            <tr><td>Référence exacte des modules et onduleurs</td><td>« Matériel premium » sans marque ni modèle</td></tr>
+            <tr><td>Production annuelle et hypothèses</td><td>Économies garanties sans étude d’ombre</td></tr>
+            <tr><td>Responsable de la pose</td><td>Sous-traitance découverte après signature</td></tr>
+            <tr><td>Prix comptant détaillé</td><td>Mensualité mise en avant sans coût total</td></tr>
+            <tr><td>Garanties et service après-vente</td><td>Promesse orale non reprise au contrat</td></tr>
+          </tbody>
+        </table>
+        <h2>La visite technique à {commune.name}</h2>
+        <p>Le technicien doit contrôler la couverture, la charpente, les ombres, le tableau électrique, la terre, le passage des câbles et l’accès chantier. Pour une propriété avec piscine ou recharge de véhicule, il doit également observer la courbe des usages et les puissances appelées.</p>
+        <div class="data-callout"><strong>Question à poser</strong>« Qui interviendra si la production réelle chute ou si l’onduleur remonte une alerte dans trois ans ? » La précision de la réponse en dit souvent plus que la brochure commerciale.</div>
+        <h2>Les démarches et la réception</h2>
+        <p>La déclaration préalable, le Consuel, le raccordement Enedis, la mise en service et le contrat de vente du surplus doivent être distribués sans ambiguïté. À la réception, conservez schémas, numéros de série, attestations, garanties et accès au monitoring.</p>
+      </article>
+      <aside class="sidebar-card local-sidebar">
+        <span class="eyebrow eyebrow-amber">Comparatif gratuit</span>
+        <h2>Recevoir des offres à {commune.name}</h2>
+        <p>Décrivez une fois votre projet, puis comparez les propositions sur une base technique commune.</p>
+        <a class="button button-primary button-full" href="#devis">Démarrer la demande →</a>
+        <dl><div><dt>Zone</dt><dd>{cp}</dd></div><div><dt>Profil</dt><dd>{commune.profile}</dd></div><div><dt>Productible indicatif</dt><dd>{metrics.yieldPerKwc} kWh/kWc</dd></div></dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="container">
+      <div class="section-heading center light"><span class="eyebrow eyebrow-amber">Méthode anti-erreur</span><h2>Le bon ordre pour sélectionner l’entreprise</h2></div>
+      <div class="process-grid"><article><span>01</span><h3>Cadrer</h3><p>Puissance, usages, budget et contraintes.</p></article><article><span>02</span><h3>Comparer</h3><p>Même périmètre et mêmes hypothèses.</p></article><article><span>03</span><h3>Vérifier</h3><p>RGE, décennale, société et sous-traitants.</p></article><article><span>04</span><h3>Visiter</h3><p>Validation du toit avant engagement final.</p></article></div>
+    </div>
+  </section>
+
+  <section class="section"><div class="container"><LeadForm city={commune.name} postalCode={cp} heading={`Comparer des installateurs solaires à ${commune.name}`}/></div></section>
+
+  <section class="section section-white"><div class="container"><div class="section-heading center"><span class="eyebrow">FAQ installateur</span><h2>Bien choisir votre professionnel</h2></div><div class="faq-list">{faqs.map((item) => <details><summary>{item.q}</summary><p>{item.a}</p></details>)}</div></div></section>
+
+  <section class="section-compact"><div class="container"><div class="section-heading"><span class="eyebrow">Autour de {commune.name}</span><h2>Comparer dans les communes proches</h2></div><div class="city-grid">{related.map((item) => <a class="city-card" href={`/installateur-solaire-${item.slug}/`}><div class="city-card-header"><h3>{item.name}</h3><span class="postal-pill">{item.postalCodes[0]}</span></div><p>Sélection RGE et contrôles du devis</p><div class="city-card-footer"><span>Voir la méthode locale</span><span>→</span></div></a>)}</div></div></section>
+</BaseLayout>

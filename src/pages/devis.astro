@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LeadForm from '../components/LeadForm.astro';
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'Étude et devis panneaux solaires dans les Alpes-Maritimes',
+  description: 'Demande gratuite de devis photovoltaïques pour un projet situé dans les Alpes-Maritimes.',
+  areaServed: { '@type': 'AdministrativeArea', name: 'Alpes-Maritimes' },
+  provider: { '@type': 'Organization', '@id': 'https://panneau-solaire-alpes-maritimes.fr/#organization', name: 'Panneau Solaire Alpes-Maritimes' },
+};
+---
+
+<BaseLayout
+  title="Devis panneaux solaires Alpes-Maritimes | Étude gratuite"
+  description="Décrivez votre projet photovoltaïque dans le 06 : villa, batterie, piscine, climatisation ou voiture électrique. Étude gratuite et sans engagement."
+  schema={schema}
+>
+  <section class="local-hero quote-hero">
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Fil d’Ariane"><a href="/">Accueil</a><span>›</span><span>Étude gratuite</span></nav>
+      <div class="local-hero-grid">
+        <div>
+          <span class="eyebrow eyebrow-amber">Alpes-Maritimes · étude en 3 minutes</span>
+          <h1>Faites chiffrer votre projet solaire sans engagement</h1>
+          <p>Une demande structurée pour comparer le dimensionnement, le matériel et le prix d’installations adaptées aux villas du 06.</p>
+        </div>
+        <aside class="local-hero-card">
+          <span>Votre demande couvre</span>
+          <ul><li>Production et puissance</li><li>Batterie et autoconsommation</li><li>Urbanisme et raccordement</li><li>Garanties et qualification RGE</li></ul>
+        </aside>
+      </div>
+      <div class="local-data-strip"><div><strong>100 %</strong><span>gratuit</span></div><div><strong>0 €</strong><span>aucun engagement</span></div><div><strong>06xxx</strong><span>zone couverte</span></div><div><strong>3 min</strong><span>pour qualifier le projet</span></div></div>
+    </div>
+  </section>
+
+  <section class="section"><div class="container"><LeadForm heading="Décrivez votre projet photovoltaïque"/></div></section>
+
+  <section class="section section-white">
+    <div class="container">
+      <div class="section-heading center"><span class="eyebrow">Pourquoi ces informations ?</span><h2>Un formulaire court, mais suffisamment précis</h2></div>
+      <div class="feature-grid">
+        <article class="feature-card"><div class="feature-icon">01</div><h3>Éviter le mauvais dimensionnement</h3><p>La puissance dépend de la toiture, mais aussi de la facture, de la piscine, de la climatisation et du véhicule électrique.</p></article>
+        <article class="feature-card"><div class="feature-icon">02</div><h3>Vérifier la couverture locale</h3><p>Le code postal est relié à une commune du 06 avant la transmission de la demande.</p></article>
+        <article class="feature-card"><div class="feature-icon">03</div><h3>Permettre un échange utile</h3><p>Les coordonnées servent à préciser le projet et, si nécessaire, organiser une visite technique.</p></article>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

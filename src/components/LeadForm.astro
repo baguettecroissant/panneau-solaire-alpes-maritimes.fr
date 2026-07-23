@@ -1,0 +1,266 @@
+---
+import { communes } from '../data/site';
+
+interface Props {
+  compact?: boolean;
+  city?: string;
+  postalCode?: string;
+  heading?: string;
+}
+
+const {
+  compact = false,
+  city = '',
+  postalCode = '',
+  heading = city ? `Recevez votre étude solaire personnalisée à ${city}` : 'Recevez votre étude solaire personnalisée',
+} = Astro.props;
+const formKey = `lead-${city.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-') || 'departement'}`;
+const postalDirectory = communes.reduce<Record<string, string[]>>((directory, commune) => {
+  commune.postalCodes.forEach((code) => {
+    directory[code] ||= [];
+    if (!directory[code].includes(commune.name)) directory[code].push(commune.name);
+  });
+  return directory;
+}, {});
+---
+
+<section id="devis" class:list={['lead-capture', { compact }]} data-lead-shell>
+  <div class="lead-capture-aside">
+    <span class="eyebrow eyebrow-amber">Étude gratuite · sans engagement</span>
+    <h2>{heading}</h2>
+    <p>Quelques informations suffisent pour qualifier la toiture, la puissance et les usages de votre villa.</p>
+    <ol class="lead-benefits">
+      <li><span>01</span><div><strong>Projet cadré</strong><small>Puissance, batterie et contraintes principales.</small></div></li>
+      <li><span>02</span><div><strong>Demande sécurisée</strong><small>Vos données servent uniquement à traiter ce projet.</small></div></li>
+      <li><span>03</span><div><strong>Professionnels à comparer</strong><small>Vérifiez toujours RGE, décennale et matériel proposé.</small></div></li>
+    </ol>
+    <div class="lead-trust"><strong>100 % gratuit</strong><span>06 uniquement</span><span>≈ 3 minutes</span></div>
+  </div>
+
+  <div class="lead-capture-main">
+    <div class="form-progress">
+      <div class="form-progress-copy"><strong data-step-label>Étape 1 sur 4</strong><span data-progress-percent>25 %</span></div>
+      <div class="form-progress-track"><i data-progress-bar></i></div>
+      <div class="form-progress-steps" aria-hidden="true"><span class="is-current">Projet</span><span>Énergie</span><span>Adresse</span><span>Contact</span></div>
+    </div>
+
+    <form class="lead-form-v2" data-lead-form novalidate>
+      <input class="hp" tabindex="-1" autocomplete="off" name="website" aria-hidden="true"/>
+      <input type="hidden" name="pageUrl" value={Astro.url.href}/>
+      <input type="hidden" name="submissionId"/>
+      <input type="hidden" name="situation" value="1"/>
+      <input type="hidden" name="catId" value="37"/>
+
+      <fieldset class="lead-step is-active" data-step="1">
+        <legend>Quel est votre projet ?</legend>
+        <p class="step-intro">Choisissez le cas le plus proche de votre besoin. Le dimensionnement sera affiné ensuite.</p>
+        <div class="choice-grid">
+          <label class="choice-card"><input type="radio" name="projectType" value="Installation photovoltaïque" checked required/><span class="choice-icon">☀</span><strong>Panneaux solaires</strong><small>Produire et autoconsommer</small></label>
+          <label class="choice-card"><input type="radio" name="projectType" value="Photovoltaïque + batterie" required/><span class="choice-icon">▣</span><strong>Solaire + batterie</strong><small>Décaler l’énergie vers le soir</small></label>
+          <label class="choice-card"><input type="radio" name="projectType" value="Solaire + piscine + véhicule électrique" required/><span class="choice-icon">◇</span><strong>Villa tout-électrique</strong><small>Piscine, climatisation et VE</small></label>
+          <label class="choice-card"><input type="radio" name="projectType" value="Remplacement ou optimisation" required/><span class="choice-icon">↗</span><strong>Optimiser l’existant</strong><small>Extension, batterie ou onduleur</small></label>
+        </div>
+        <label class="field-block"><span>Type de bien</span><select name="typeBien" required><option value="1">Maison ou villa — résidence principale</option><option value="3">Résidence secondaire</option><option value="2">Appartement / copropriété avec toiture</option></select></label>
+      </fieldset>
+
+      <fieldset class="lead-step" data-step="2">
+        <legend>Votre consommation et votre calendrier</legend>
+        <p class="step-intro">Ces réponses permettent d’éviter une installation surdimensionnée ou une batterie inutile.</p>
+        <div class="form-grid">
+          <label class="field-block"><span>Puissance envisagée</span><select name="powerNeed" required><option value="À étudier">Je souhaite être conseillé</option><option value="3 kWc">3 kWc</option><option value="6 kWc">6 kWc</option><option value="9 kWc">9 kWc</option><option value="12 kWc ou plus">12 kWc ou plus</option></select></label>
+          <label class="field-block"><span>Facture électrique mensuelle</span><select name="consumption" required><option value="Moins de 150 €">Moins de 150 €</option><option value="150 à 300 €" selected>150 à 300 €</option><option value="Plus de 300 €">Plus de 300 €</option><option value="Non renseignée">Je ne sais pas</option></select></label>
+        </div>
+        <span class="field-label">Quand souhaitez-vous avancer ?</span>
+        <div class="timing-grid">
+          <label><input type="radio" name="delais" value="1" required/><span>Dès que possible</span></label>
+          <label><input type="radio" name="delais" value="2" checked required/><span>Dans les 3 mois</span></label>
+          <label><input type="radio" name="delais" value="3" required/><span>Plus de 3 mois</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="lead-step" data-step="3">
+        <legend>Où se situe la toiture ?</legend>
+        <p class="step-intro">Le service couvre uniquement les Alpes-Maritimes. La commune est reliée automatiquement au code postal.</p>
+        <label class="field-block"><span>Adresse du projet</span><input name="adresse" autocomplete="street-address" placeholder="12 avenue des Oliviers" minlength="5" required/></label>
+        <div class="form-grid">
+          <label class="field-block"><span>Code postal</span><input name="cp" data-postal-code inputmode="numeric" autocomplete="postal-code" placeholder="06000" pattern="06[0-9]{3}" maxlength="5" value={postalCode} required/></label>
+          <label class="field-block"><span>Commune</span><select name="ville" data-city data-preferred-city={city} disabled required><option value="">Saisissez d’abord le code postal</option></select></label>
+        </div>
+        <p class="postal-help" data-city-help>La commune sera proposée automatiquement après 5 chiffres.</p>
+      </fieldset>
+
+      <fieldset class="lead-step" data-step="4">
+        <legend>À qui envoyer l’étude ?</legend>
+        <p class="step-intro">Vos coordonnées permettent au professionnel de préciser le projet et d’organiser, si nécessaire, une visite technique.</p>
+        <div class="form-grid">
+          <label class="field-block"><span>Prénom</span><input name="prenom" autocomplete="given-name" minlength="2" required/></label>
+          <label class="field-block"><span>Nom</span><input name="nom" autocomplete="family-name" minlength="2" required/></label>
+          <label class="field-block"><span>E-mail</span><input name="email" type="email" autocomplete="email" placeholder="vous@exemple.fr" required/></label>
+          <label class="field-block"><span>Téléphone</span><input name="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="06 12 34 56 78" pattern="(?:\\+33|0)[1-9](?:[ .-]?\\d{2}){4}" required/></label>
+        </div>
+        <label class="consent-row"><input name="consent" type="checkbox" required/><span>J’accepte que mes informations soient utilisées et transmises à des professionnels partenaires afin de répondre à ma demande, conformément à la <a href="/politique-confidentialite/" target="_blank">politique de confidentialité</a>.</span></label>
+        <p class="privacy-note">🔒 Données sécurisées · Service gratuit · Aucun engagement de signature</p>
+      </fieldset>
+
+      <p class="form-error" data-form-error role="alert"></p>
+      <div class="form-actions">
+        <button class="button button-secondary" type="button" data-prev hidden>← Retour</button>
+        <button class="button button-primary" type="button" data-next>Continuer →</button>
+        <button class="button button-primary" type="submit" data-submit hidden>Recevoir mon étude gratuite →</button>
+      </div>
+    </form>
+
+    <div class="form-success" data-success hidden>
+      <span>✓</span>
+      <h3 tabindex="-1" data-success-title>Votre demande est bien enregistrée.</h3>
+      <p data-success-text>Merci. Votre projet peut maintenant être étudié par un professionnel disponible dans le 06.</p>
+      <a class="button button-secondary" href="/">Revenir à l’accueil</a>
+    </div>
+    <script type="application/json" data-postal-directory set:html={JSON.stringify(postalDirectory)}></script>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-lead-shell]').forEach((shell) => {
+    if (shell.dataset.ready) return;
+    shell.dataset.ready = 'true';
+    const form = shell.querySelector<HTMLFormElement>('[data-lead-form]');
+    if (!form) return;
+    const steps = [...form.querySelectorAll<HTMLElement>('[data-step]')];
+    const previous = form.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = form.querySelector<HTMLButtonElement>('[data-next]');
+    const submit = form.querySelector<HTMLButtonElement>('[data-submit]');
+    const error = form.querySelector<HTMLElement>('[data-form-error]');
+    const progress = shell.querySelector<HTMLElement>('[data-progress-bar]');
+    const percent = shell.querySelector<HTMLElement>('[data-progress-percent]');
+    const stepLabel = shell.querySelector<HTMLElement>('[data-step-label]');
+    const progressLabels = [...shell.querySelectorAll<HTMLElement>('.form-progress-steps span')];
+    const postal = form.elements.namedItem('cp') as HTMLInputElement;
+    const citySelect = form.elements.namedItem('ville') as HTMLSelectElement;
+    const directoryNode = shell.querySelector<HTMLScriptElement>('[data-postal-directory]');
+    const directory = JSON.parse(directoryNode?.textContent || '{}') as Record<string, string[]>;
+    let current = 1;
+    let submitting = false;
+
+    const submission = form.elements.namedItem('submissionId') as HTMLInputElement;
+    submission.value = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    (form.elements.namedItem('pageUrl') as HTMLInputElement).value = window.location.href;
+
+    const updateCity = () => {
+      const code = postal.value.replace(/\D/g, '').slice(0, 5);
+      postal.value = code;
+      const help = shell.querySelector<HTMLElement>('[data-city-help]');
+      citySelect.replaceChildren(new Option('Saisissez d’abord le code postal', ''));
+      citySelect.disabled = true;
+      if (code.length < 5) {
+        if (help) help.textContent = 'La commune sera proposée automatiquement après 5 chiffres.';
+        return;
+      }
+      if (!/^06\d{3}$/.test(code)) {
+        if (help) help.textContent = 'Le projet doit se situer dans les Alpes-Maritimes (code postal 06xxx).';
+        return;
+      }
+      const cities = directory[code] || [];
+      if (!cities.length) {
+        if (help) help.textContent = 'Ce code postal n’est pas encore couvert par notre référentiel.';
+        return;
+      }
+      citySelect.replaceChildren();
+      if (cities.length > 1) citySelect.add(new Option('Choisissez la commune', ''));
+      cities.forEach((name) => citySelect.add(new Option(name, name)));
+      citySelect.disabled = false;
+      const preferred = citySelect.dataset.preferredCity || '';
+      citySelect.value = cities.includes(preferred) ? preferred : cities.length === 1 ? cities[0] : '';
+      if (help) help.textContent = cities.length === 1 ? `Commune détectée : ${cities[0]}.` : `${cities.length} communes correspondent : sélectionnez la vôtre.`;
+    };
+
+    const render = () => {
+      steps.forEach((step) => step.classList.toggle('is-active', Number(step.dataset.step) === current));
+      previous!.hidden = current === 1;
+      next!.hidden = current === steps.length;
+      submit!.hidden = current !== steps.length;
+      const value = current * 25;
+      if (progress) progress.style.width = `${value}%`;
+      if (percent) percent.textContent = `${value} %`;
+      if (stepLabel) stepLabel.textContent = `Étape ${current} sur 4`;
+      progressLabels.forEach((label, index) => label.classList.toggle('is-current', index + 1 <= current));
+      if (error) error.textContent = '';
+    };
+
+    const validate = () => {
+      const active = steps[current - 1];
+      if (current === 3 && citySelect.disabled) {
+        if (error) error.textContent = 'Saisissez un code postal 06xxx valide pour sélectionner la commune.';
+        postal.focus();
+        return false;
+      }
+      for (const field of active.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select')) {
+        if (!field.checkValidity()) {
+          field.reportValidity();
+          if (error) error.textContent = 'Merci de compléter les informations demandées avant de continuer.';
+          return false;
+        }
+      }
+      return true;
+    };
+
+    next?.addEventListener('click', () => {
+      if (!validate()) return;
+      current = Math.min(steps.length, current + 1);
+      render();
+      requestAnimationFrame(() => steps[current - 1]?.querySelector<HTMLElement>('input, select')?.focus());
+    });
+    previous?.addEventListener('click', () => {
+      current = Math.max(1, current - 1);
+      render();
+      requestAnimationFrame(() => steps[current - 1]?.querySelector<HTMLElement>('input, select')?.focus());
+    });
+    postal.addEventListener('input', updateCity);
+    postal.addEventListener('blur', updateCity);
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (submitting || !validate() || !submit) return;
+      submitting = true;
+      submit.disabled = true;
+      submit.textContent = 'Transmission sécurisée…';
+      const payload: Record<string, unknown> = Object.fromEntries(new FormData(form).entries());
+      payload.consent = (form.elements.namedItem('consent') as HTMLInputElement).checked;
+      try {
+        const response = await fetch('/api/lead/', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(payload) });
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) throw new Error('Le service de devis ne répond pas correctement. Merci de réessayer.');
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || result.errors?.[0] || 'Votre demande n’a pas pu être envoyée.');
+        form.hidden = true;
+        shell.querySelector<HTMLElement>('.form-progress')?.setAttribute('hidden', '');
+        const success = shell.querySelector<HTMLElement>('[data-success]');
+        if (success) {
+          success.hidden = false;
+          const title = success.querySelector<HTMLElement>('[data-success-title]');
+          const text = success.querySelector<HTMLElement>('[data-success-text]');
+          if (result.status === 'sent') {
+            if (title) title.textContent = 'Votre demande a été transmise.';
+            if (text) text.textContent = 'Merci. Un professionnel disponible peut maintenant qualifier votre projet solaire.';
+          } else {
+            if (title) title.textContent = 'Votre demande est bien enregistrée.';
+            if (text) text.textContent = 'Votre projet est conservé pour suivi, même si aucune mise en relation immédiate n’est disponible.';
+          }
+          requestAnimationFrame(() => title?.focus());
+        }
+        const analyticsEndpoint = 'https://nhmvgsrwhjsjnpncpiaj.supabase.co/functions/v1/analytics-collect';
+        const analyticsPayload = JSON.stringify({ domain: location.hostname, pathname: location.pathname, referrer: document.referrer || '', screen_width: screen.width, screen_height: screen.height, language: navigator.language || '', title: document.title, event_name: 'lead_submitted', outcome: result.status || 'captured' });
+        if (navigator.sendBeacon) navigator.sendBeacon(analyticsEndpoint, analyticsPayload);
+        else fetch(analyticsEndpoint, { method: 'POST', body: analyticsPayload, keepalive: true }).catch(() => {});
+      } catch (caught) {
+        if (error) error.textContent = caught instanceof Error ? caught.message : 'Une erreur est survenue. Merci de réessayer.';
+        submitting = false;
+        submit.disabled = false;
+        submit.textContent = 'Recevoir mon étude gratuite →';
+      }
+    });
+
+    updateCity();
+    render();
+  });
+</script>

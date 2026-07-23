@@ -1,0 +1,77 @@
+---
+interface Props {
+  city?: string;
+  yieldPerKwc?: number;
+}
+
+const { city = 'les Alpes-Maritimes', yieldPerKwc = 1450 } = Astro.props;
+---
+<section
+  id="simulateur"
+  class="local-simulator"
+  data-local-simulator
+  data-yield={yieldPerKwc}
+  aria-labelledby="sim-title"
+>
+  <div class="local-tool-head">
+    <div>
+      <span class="eyebrow eyebrow-amber">Pré-étude instantanée</span>
+      <h2 id="sim-title">Estimez le potentiel de votre toiture à {city}</h2>
+      <p>Ajustez la surface, l’orientation et vos usages. Le calcul reste indicatif jusqu’à l’étude d’ombre et la visite technique.</p>
+    </div>
+    <span class="tool-live"><i></i> Calcul en direct</span>
+  </div>
+  <div class="local-sim-layout">
+    <form class="local-sim-controls" onsubmit="return false">
+      <label><span>Surface réellement exploitable <strong data-surface-label>45 m²</strong></span><input data-surface type="range" min="15" max="150" value="45" step="1"/></label>
+      <label><span>Orientation principale</span><select data-orientation><option value="1">Sud</option><option value=".94">Sud-est / sud-ouest</option><option value=".82">Est / ouest</option><option value=".68">Orientation peu favorable</option></select></label>
+      <label><span>Ombrage de la toiture</span><select data-shade><option value="1">Très faible</option><option value=".92">Léger en matinée ou soirée</option><option value=".8">Partiel dans la journée</option></select></label>
+      <label><span>Facture électrique mensuelle <strong data-bill-label>220 €</strong></span><input data-bill type="range" min="70" max="700" value="220" step="10"/></label>
+    </form>
+    <div class="local-sim-results" aria-live="polite">
+      <div class="sim-primary"><small>Production annuelle estimée</small><strong data-production>—</strong><span>kWh / an</span></div>
+      <dl>
+        <div><dt>Puissance adaptée</dt><dd data-power>—</dd></div>
+        <div><dt>Couverture des usages</dt><dd data-coverage>—</dd></div>
+        <div><dt>Économie indicative</dt><dd data-savings>—</dd></div>
+        <div><dt>Batterie à étudier</dt><dd data-battery>—</dd></div>
+      </dl>
+      <a class="button button-primary button-full" href="#devis">Faire vérifier cette estimation →</a>
+      <p>Hypothèse locale de {yieldPerKwc.toLocaleString('fr-FR')} kWh/kWc/an, avant pertes propres à la toiture. Résultat non contractuel.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-local-simulator]').forEach((simulator) => {
+    if (simulator.dataset.ready) return;
+    simulator.dataset.ready = 'true';
+    const q = <T extends Element>(selector: string) => simulator.querySelector<T>(selector);
+    const surface = q<HTMLInputElement>('[data-surface]');
+    const orientation = q<HTMLSelectElement>('[data-orientation]');
+    const shade = q<HTMLSelectElement>('[data-shade]');
+    const bill = q<HTMLInputElement>('[data-bill]');
+    const set = (selector: string, value: string) => { const el = q<HTMLElement>(selector); if (el) el.textContent = value; };
+    const format = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+    const update = () => {
+      const area = Number(surface?.value || 45);
+      const monthlyBill = Number(bill?.value || 220);
+      const power = Math.min(24, area * .205);
+      const production = Math.round(power * Number(simulator.dataset.yield || 1450) * Number(orientation?.value || 1) * Number(shade?.value || 1));
+      const annualUse = monthlyBill * 12 / .25;
+      const useful = Math.min(production * .72, annualUse * .82);
+      const savings = Math.round(useful * .25 + Math.max(0, production - useful) * .04);
+      const coverage = Math.min(95, Math.round(useful / Math.max(annualUse, 1) * 100));
+      const battery = monthlyBill < 160 ? '5 kWh' : monthlyBill < 320 ? '8 à 10 kWh' : '10 à 15 kWh';
+      set('[data-surface-label]', `${area} m²`);
+      set('[data-bill-label]', `${monthlyBill} €`);
+      set('[data-production]', format.format(production));
+      set('[data-power]', `${power.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} kWc`);
+      set('[data-coverage]', `${coverage} %`);
+      set('[data-savings]', `${format.format(savings)} € / an`);
+      set('[data-battery]', battery);
+    };
+    [surface, orientation, shade, bill].forEach((control) => control?.addEventListener('input', update));
+    update();
+  });
+</script>
